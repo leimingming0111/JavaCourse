@@ -1,0 +1,58 @@
+package test.homework;
+
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * @program: demo
+ * @Date: 2021/7/15 19:15
+ * @Author: leimingming
+ * @Description:
+ */
+public class Demo6 {
+    public static void main(String[] args) {
+        ReentrantLock lock = new ReentrantLock();
+        Condition condition = lock.newCondition();
+
+        long start=System.currentTimeMillis();
+
+        final int[] sum = new int[1];
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                lock.lock();
+
+                sum[0] = sum();
+                condition.signal();
+
+                lock.unlock();
+            }
+        });
+        thread.start();
+
+        try {
+                lock.lock();
+                condition.await();
+                // 确保  拿到result 并输出
+                System.out.println("异步计算结果为："+sum[0]);
+
+                System.out.println("使用时间："+ (System.currentTimeMillis()-start) + " ms");
+
+                lock.unlock();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    private static int sum() {
+        return fibo(36);
+    }
+
+    private static int fibo(int a) {
+        if ( a < 2)
+            return 1;
+        return fibo(a-1) + fibo(a-2);
+    }
+}
